@@ -11,6 +11,7 @@ import {
 } from "radix-vue";
 import { Icon } from "@iconify/vue";
 import { ref, reactive, onMounted } from "vue"; // Importar reactive
+import { LoanMovie } from "../../../domain";
 
 const movies = ref([]);
 const clients = ref([]);
@@ -87,7 +88,7 @@ const saveLoan = async () => {
   }
 };
 
-const editLoan = (loan) => {
+const editLoan = (loan: LoanMovie) => {
   currentLoan.id = loan.id;
   currentLoan.movieId = loan.movieId;
   currentLoan.clientId = loan.clientId;
@@ -116,7 +117,7 @@ onMounted(() => {
       @click="createNewLoan"
       class="text-secondary font-semibold shadow-blackA7 hover:bg-mauve3 inline-flex h-[35px] items-center justify-center rounded-[4px] bg-white px-[15px] leading-none shadow-[0_2px_10px] focus:shadow-[0_0_0_2px] focus:shadow-black focus:outline-none"
     >
-      Añadir/Editar Prestamo
+    Add/Edit Loan
     </DialogTrigger>
     <DialogPortal>
       <DialogOverlay
@@ -126,20 +127,20 @@ onMounted(() => {
         class="data-[state=open]:animate-contentShow fixed top-[50%] left-[50%] max-h-[85vh] w-[90vw] max-w-[450px] translate-x-[-50%] translate-y-[-50%] rounded-[6px] bg-white p-[25px] shadow-[hsl(206_22%_7%_/_35%)_0px_10px_38px_-10px,_hsl(206_22%_7%_/_20%)_0px_10px_20px_-15px] focus:outline-none z-[100]"
       >
         <DialogTitle class="text-mauve12 m-0 text-[17px] font-semibold">
-          {{ isEditing ? 'Editar Prestamo' : 'Añadir Prestamo' }}
+          {{ isEditing ? 'Edit Loan' : 'Add Loan' }}
         </DialogTitle>
         <DialogDescription
           class="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal"
         >
-          Añada o Edite el prestamo aquí. Haga clic en guardar cuando haya
-          terminado.
+        Add or Edit the loan here. Click save when you have
+          finished.
         </DialogDescription>
         <fieldset class="mb-[15px] flex items-center gap-5">
           <label
             class="text-primary w-[90px] text-right text-[15px]"
             for="movie"
           >
-          Pelicula
+          Movies
           </label>
           <select
             id="movie"
@@ -157,7 +158,7 @@ onMounted(() => {
             class="text-primary w-[90px] text-right text-[15px]"
             for="customer"
           >
-          Cliente
+          Customers
           </label>
           <select
             id="customer"
@@ -175,7 +176,7 @@ onMounted(() => {
             class="text-primary w-[90px] text-right text-[15px]"
             for="loanDate"
           >
-          Fecha préstamo
+            Loan date
           </label>
           <input
             id="loanDate"
@@ -189,7 +190,7 @@ onMounted(() => {
             class="text-primary w-[90px] text-right text-[15px]"
             for="returnDate"
           >
-          Fecha devolución
+          Return date
           </label>
           <input
             id="returnDate"
@@ -204,7 +205,7 @@ onMounted(() => {
               @click="saveLoan"
               class="bg-green4 text-primary hover:bg-gray-400 focus:shadow-secondary inline-flex h-[35px] items-center justify-center rounded-[4px] px-[15px] font-semibold leading-none focus:shadow-[0_0_0_2px] focus:outline-none"
             >
-              Guardar cambios
+            Save Changes
             </button>
           </DialogClose>
         </div>
