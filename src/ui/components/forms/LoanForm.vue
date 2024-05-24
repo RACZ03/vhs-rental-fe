@@ -15,18 +15,29 @@ import { LoanMovie } from "../../../domain";
 
 const movies = ref([]);
 const clients = ref([]);
-const currentLoan = reactive({
-  id: null,
-  movieId: '',
-  clientId: '',
-  loanDate: '',
-  returnDate: '',
-});
-const isEditing = ref(false);
+
+const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+
+interface Props {
+  action: string;
+  loan: LoanMovie | null;
+}
+
+const props = defineProps<Props>();
 
 const emits = defineEmits(['closed']);
 
-const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+const form = ref<LoanMovie>({
+  id: 0,
+  date_loan: "",
+  date_return: "",
+  movie_id: 0,
+  client_id: 0,
+});
+
+if (props.loan) {
+  form.value = { ...props.loan };
+}
 
 const loadData = async () => {
   try {
@@ -52,58 +63,46 @@ const loadData = async () => {
     console.error("Error loading data: ", error);
   }
 };
-
-const saveLoan = async () => {
+const submitForm = async () => {
   try {
-    const method = isEditing.value ? 'PUT' : 'POST';
-    const url = isEditing.value ? `${BASE_URL}/loanMovies/${currentLoan.id}` : `${BASE_URL}/loanMovies`;
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+
+    const data = {
+      movieId: form.value.movie_id,
+      clientId: form.value.client_id,
+      loanDate: form.value.date_loan,
+      returnDate: form.value.date_return,
+    };
+
+    let url = "";
+    let method = "";
+
+    if (form.value.id !== 0) {
+      url = `${BASE_URL}/loanMovies/${form.value.id}`;
+      method = "PUT";
+    } else {
+      url = `${BASE_URL}/loanMovies`;
+      method = "POST";
+    }
 
     const response = await fetch(url, {
-      method,
+      method: method,
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(currentLoan),
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to save loan');
+      throw new Error("Error al guardar el registro");
     }
 
-    // Reset currentLoan and close dialog
-    currentLoan.id = null;
-    currentLoan.movieId = '';
-    currentLoan.clientId = '';
-    currentLoan.loanDate = '';
-    currentLoan.returnDate = '';
-    isEditing.value = false;
-    
-    // Optionally reload data or notify the user
-    loadData();
-    
-    emits('closed');
-
+    console.log("Cliente guardado:", await response.json());
   } catch (error) {
-    console.error("Error saving loan: ", error);
+    console.error("Error al procesar el registro:", error);
   }
-};
 
-const editLoan = (loan: LoanMovie) => {
-  currentLoan.id = loan.id;
-  currentLoan.movieId = loan.movieId;
-  currentLoan.clientId = loan.clientId;
-  currentLoan.loanDate = loan.loanDate;
-  currentLoan.returnDate = loan.returnDate;
-  isEditing.value = true;
-};
-
-const createNewLoan = () => {
-  currentLoan.id = null;
-  currentLoan.movieId = '';
-  currentLoan.clientId = '';
-  currentLoan.loanDate = '';
-  currentLoan.returnDate = '';
-  isEditing.value = false;
+  emits('closed');
 };
 
 onMounted(() => {
@@ -113,11 +112,13 @@ onMounted(() => {
 
 <template>
   <DialogRoot>
-    <DialogTrigger
-      @click="createNewLoan"
-      class="text-secondary font-semibold shadow-blackA7 hover:bg-mauve3 inline-flex h-[35px] items-center justify-center rounded-[4px] bg-white px-[15px] leading-none shadow-[0_2px_10px] focus:shadow-[0_0_0_2px] focus:shadow-black focus:outline-none"
-    >
-    Add/Edit Loan
+    <DialogTrigger class="text-secondary font-semibold shadow-blackA7 hover:bg-mauve3 inline-flex h-[35px] items-center justify-center rounded-[4px] bg-white px-[15px] leading-none shadow-[0_1px_5px] focus:shadow-[0_0_0_1px] focus:shadow-black focus:outline-none">
+      <template v-if="props.action.toLowerCase() === 'edit'">
+        <Icon icon="bi:pencil-fill" />
+      </template>
+      <template v-else>
+        {{ props.action }} Movie Loan
+      </template>
     </DialogTrigger>
     <DialogPortal>
       <DialogOverlay
@@ -143,8 +144,8 @@ onMounted(() => {
           Movies
           </label>
           <select
-            id="movie"
-            v-model="currentLoan.movieId"
+            id="movie_id"
+            v-model="form.movie_id"
             class="text-primary shadow-gray-400 focus:shadow-secondary inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
           >
             <option value=""></option>
@@ -161,8 +162,8 @@ onMounted(() => {
           Customers
           </label>
           <select
-            id="customer"
-            v-model="currentLoan.clientId"
+            id="client_id"
+            v-model="form.client_id"
             class="text-primary shadow-gray-400 focus:shadow-secondary inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
           >
             <option value=""></option>
@@ -179,8 +180,8 @@ onMounted(() => {
             Loan date
           </label>
           <input
-            id="loanDate"
-            v-model="currentLoan.loanDate"
+            id="date_loan"
+            v-model="form.date_loan"
             class="text-primary shadow-gray-400 focus:shadow-secondary inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
             type="date"
           />
@@ -193,19 +194,16 @@ onMounted(() => {
           Return date
           </label>
           <input
-            id="returnDate"
-            v-model="currentLoan.returnDate"
+            id="date_return"
+            v-model="form.date_return"
             class="text-primary shadow-gray-400 focus:shadow-secondary inline-flex h-[35px] w-full flex-1 items-center justify-center rounded-[4px] px-[10px] text-[15px] leading-none shadow-[0_0_0_1px] outline-none focus:shadow-[0_0_0_2px]"
             type="date"
           />
         </fieldset>
         <div class="mt-[25px] flex justify-end">
           <DialogClose as-child>
-            <button
-              @click="saveLoan"
-              class="bg-green4 text-primary hover:bg-gray-400 focus:shadow-secondary inline-flex h-[35px] items-center justify-center rounded-[4px] px-[15px] font-semibold leading-none focus:shadow-[0_0_0_2px] focus:outline-none"
-            >
-            Save Changes
+            <button @click="submitForm" class="bg-green4 text-primary hover:bg-gray-400 focus:shadow-secondary inline-flex h-[35px] items-center justify-center rounded-[4px] px-[15px] font-semibold leading-none focus:shadow-[0_0_0_2px] focus:outline-none">
+              {{ props.action === "Edit" ? "Update" : "Save" }}
             </button>
           </DialogClose>
         </div>

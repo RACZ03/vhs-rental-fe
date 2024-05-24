@@ -196,7 +196,7 @@ const handleFilterChange = () => {
             Confirm Deletion
           </DialogTitle>
           <DialogDescription class="text-mauve11 mt-[10px] mb-5 text-[15px] leading-normal">
-            Are you sure you want to delete this loan?
+            Are you sure you want to delete this loand?
           </DialogDescription>
           <div class="flex justify-end mt-[25px]">
             <DialogClose as-child>
@@ -212,5 +212,6 @@ const handleFilterChange = () => {
       </DialogPortal>
     </DialogRoot>
   </template>
+
 
 </template>
